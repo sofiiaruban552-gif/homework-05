@@ -1,49 +1,69 @@
+import { useState } from "react";
 import "./App.css";
+
 import Filters from "./components/Filters";
 import Header from "./components/Header";
 import ProductList from "./components/ProductList/ProductList";
 import ProductState from "./components/ProductState";
+import Cart from "./components/Cart/Cart";
 
 import useFetch from "./hooks/useFetch";
+import useFilters from "./hooks/useFilters";
+import useDebounce from "./hooks/useDebounce";
 
 const API = {
-  PRODUCTS: "https://dummyjson.com/products",
   PRODUCTS_PAGINATED: "https://dummyjson.com/products?limit=12&skip=0",
-  SEARCH_PRODUCTS: "https://dummyjson.com/products/search?q=",
   CATEGORIES: "https://dummyjson.com/products/category-list",
   PRODUCTS_BY_CATEGORY: "https://dummyjson.com/products/category/",
 };
 
 const App = () => {
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const { search, selectedCategory, onSearchChange, onCategoryChange } =
+    useFilters();
+
+  const debouncedSearch = useDebounce(search);
+
+  const productsUrl = selectedCategory
+    ? `${API.PRODUCTS_BY_CATEGORY}${selectedCategory}`
+    : API.PRODUCTS_PAGINATED;
+
   const {
     data: productsData,
     isLoading: productsLoading,
     error: productsError,
     refetch,
-  } = useFetch(API.PRODUCTS_PAGINATED);
+  } = useFetch(productsUrl);
 
-  const { data: categoriesData } = useFetch(API.CATEGORIES); //isLoading: categoriesLoading
-
-  const products = productsData?.products ?? [];
+  const { data: categoriesData } = useFetch(API.CATEGORIES);
   const categories = categoriesData ?? [];
+
+  const products = (productsData?.products ?? []).filter((product) =>
+    product.title.toLowerCase().includes(debouncedSearch.toLowerCase()),
+  );
 
   return (
     <div className="wrapper">
-      <Header />
-      <Filters categories={categories} />
-      {(productsLoading || productsError || products.length === 0) && (
-        <ProductState
-          isLoading={productsLoading}
-          error={productsError}
-          isEmpty={!productsLoading && !productsError && products.length === 0}
-          onRetry={refetch}
-        />
-      )}
+      <Header onCartClick={() => setIsCartOpen((prev) => !prev)} />
+      {isCartOpen && <Cart />}
+      <Filters
+        search={search}
+        onSearchChange={onSearchChange}
+        categories={categories}
+        selectedCategory={selectedCategory}
+        onCategoryChange={onCategoryChange}
+      />
+
+      <ProductState
+        isLoading={productsLoading}
+        error={productsError}
+        isEmpty={!productsLoading && !productsError && products.length === 0}
+        onRetry={refetch}
+      />
 
       {!productsLoading && !productsError && products.length > 0 && (
         <ProductList products={products} />
       )}
-      <ProductList />
     </div>
   );
 };
