@@ -1,11 +1,11 @@
-import { useShallow } from "zustand/react/shallow";
+import { useShallow } from "zustand/shallow";
 
 import useCartStore from "../../store/useCartStore";
 
 import Button from "../shared/Button";
 import CartItem from "./CartItem";
 
-const Cart = () => {
+const Cart = ({ onClose }) => {
   const { items, clearCart } = useCartStore(
     useShallow((state) => ({
       items: state.items,
@@ -18,6 +18,11 @@ const Cart = () => {
   const totalPrice = items
     .reduce((total, item) => total + item.price * item.qty, 0)
     .toFixed(2);
+
+  const handleClearCart = () => {
+    clearCart();
+    onClose();
+  };
 
   if (isEmpty) {
     return (
@@ -41,7 +46,7 @@ const Cart = () => {
       <div className="cart__footer">
         <span className="cart__total">Total: ${totalPrice}</span>
 
-        <Button className="cart__clear-btn" onClick={clearCart}>
+        <Button className="cart__clear-btn" onClick={handleClearCart}>
           Clear Cart
         </Button>
       </div>

@@ -49,7 +49,7 @@ const App = () => {
   return (
     <div className="wrapper">
       <Header onCartClick={handleCartToggle} />
-      {isCartOpen && <Cart />}
+      {isCartOpen && <Cart onClose={() => setIsCartOpen(false)} />}
       <Filters
         search={search}
         onSearchChange={onSearchChange}
