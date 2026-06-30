@@ -1,11 +1,13 @@
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { useShallow } from "zustand/react/shallow";
+import { useShallow } from "zustand/shallow";
 
-import  useCartStore  from "../../store/useCartStore";
+import useCartStore from "../../store/useCartStore";
 
 import Button from "../shared/Button";
 
 const CartItem = ({ item }) => {
+  const { id, title, qty } = item;
+
   const { incrementQty, decrementQty, removeFromCart } = useCartStore(
     useShallow((state) => ({
       incrementQty: state.incrementQty,
@@ -14,29 +16,33 @@ const CartItem = ({ item }) => {
     })),
   );
 
+  const handleDecrease = () => decrementQty(id);
+  const handleIncrease = () => incrementQty(id);
+  const handleRemove = () => removeFromCart(id);
+
   return (
     <article className="cart-item">
-      <h3 className="cart-item__title">{item.title}</h3>
+      <h3 className="cart-item__title">{title}</h3>
 
       <div className="cart-item__actions">
         <Button
           icon={Minus}
           className="cart-item__btn"
-          onClick={() => decrementQty(item.id)}
+          onClick={handleDecrease}
         />
 
-        <span className="cart-item__quantity">{item.qty}</span>
+        <span className="cart-item__quantity">{qty}</span>
 
         <Button
           icon={Plus}
           className="cart-item__btn"
-          onClick={() => incrementQty(item.id)}
+          onClick={handleIncrease}
         />
 
         <Button
           icon={Trash2}
           className="cart-item__remove"
-          onClick={() => removeFromCart(item.id)}
+          onClick={handleRemove}
         />
       </div>
     </article>
